@@ -1,0 +1,15 @@
+[package]
+name = "plexrs"
+version = "0.1.0"
+authors = ["Dan Cardin <ddcardin@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+crossterm = "*"
+
+[[bin]]
+name = "plexrs"
+doc = false
+
+[lib]
+doc = true
