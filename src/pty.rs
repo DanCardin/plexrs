@@ -1,26 +1,38 @@
+// use os_pipe::pipe;
 use std::io;
 use std::io::Read;
 use std::io::Write;
 use std::io::{BufReader, BufWriter};
-use std::process::{Command, Stdio};
+use std::process;
 
 pub struct Pty {
-    // pub child: Child,
-    reader: Box<dyn Read + Send>,
-    writer: Box<dyn Write + Send>,
+    // child: process::Child,
+    writer: Box<dyn Write>,
+    reader: Box<dyn Read>,
 }
 
 impl Pty {
     pub fn spawn(shell: &str) -> Pty {
-        let mut child = Command::new(&shell)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
+        // let (mut reader, writer) = pipe().unwrap();
+        // let writer_clone = writer.try_clone().unwrap();
+
+        let mut child = process::Command::new(&shell)
+            .stdin(process::Stdio::piped())
+            .stdout(process::Stdio::piped())
+            .stderr(process::Stdio::piped())
             .spawn()
             .expect("Failed to spawn subprocess");
 
+        let input = child.stdin.take().unwrap();
+        let writer = Box::new(BufWriter::new(input));
+
+        let output = child.stdout.take().unwrap();
+        let reader = Box::new(BufReader::new(output));
+
         Self {
-            writer: Box::new(BufWriter::new(child.stdin.take().unwrap())),
-            reader: Box::new(BufReader::new(child.stdout.take().unwrap())),
+            // child,
+            writer,
+            reader,
         }
     }
 }

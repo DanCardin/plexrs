@@ -12,7 +12,11 @@ use crossterm::terminal;
 fn main() -> crossterm::Result<()> {
     let size = terminal::size().expect("no terminal size");
     println!("{:?}", size);
-    terminal::enable_raw_mode()?;
+    // terminal::enable_raw_mode()?;
+
+    let stdout = io::stdout();
+    let handle = stdout.lock();
+    let mut writer = BufWriter::new(handle);
     loop {
         let mut foo = Pty::spawn("/bin/ls");
         if poll(Duration::from_millis(1000))? {
@@ -26,17 +30,10 @@ fn main() -> crossterm::Result<()> {
                 Event::Resize(width, height) => println!("New size {}x{}", width, height),
             }
         }
-        println!("lkjasdlfjas");
-
-        // foo.write(b"ls\n").expect("error writing to child stdin");
-        // foo.flush().expect("error flushing child stdin");
 
         let mut buf = Vec::new();
-        foo.read(&mut buf)?;
+        foo.read_to_end(&mut buf)?;
 
-        let stdout = io::stdout();
-        let handle = stdout.lock();
-        let mut writer = BufWriter::new(handle);
         writer.write_all(&buf)?;
         writer.flush()?;
     }
